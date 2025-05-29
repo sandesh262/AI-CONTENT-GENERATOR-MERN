@@ -42,7 +42,7 @@ const UsageTracker = () => {
 
   if (loading) {
     return (
-      <div className="p-3 rounded-3 usage-tracker-loading placeholder-glow">
+      <div className="p-2 rounded-3 bg-dark bg-opacity-25 placeholder-glow">
         <div className="placeholder col-9 mb-2"></div>
         <div className="placeholder col-12 mb-3"></div>
         <div className="placeholder col-6"></div>
@@ -55,21 +55,16 @@ const UsageTracker = () => {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="p-3 rounded-3 usage-tracker"
+      className="p-2 rounded-3 bg-dark bg-opacity-25 mb-4"
     >
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <div className="d-flex align-items-center gap-2">
-          <div className="credits-icon">
-            <Zap size={16} className="text-white" />
-          </div>
-          <h6 className="fw-medium text-white mb-0">Credits</h6>
+      <div className="d-flex justify-content-between align-items-center mb-2">
+        <div className="d-flex align-items-center">
+          <Zap size={16} className="text-white me-2" />
+          <span className="text-white small">Credits</span>
         </div>
-        <motion.span 
-          whileHover={{ scale: 1.05 }}
-          className="badge plan-badge text-capitalize"
-        >
+        <span className="badge bg-primary bg-opacity-25 text-white text-capitalize small">
           {usage.plan} Plan
-        </motion.span>
+        </span>
       </div>
       
       <div className="progress-container mb-2">

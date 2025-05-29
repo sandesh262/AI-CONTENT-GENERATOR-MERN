@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { Check, CreditCard } from 'lucide-react';
+import { Check, CreditCard, Zap, Shield, Star, Award, RefreshCw, Sparkles, Gem, Clock } from 'lucide-react';
 import DashboardLayout from '../components/DashboardLayout';
 import { useAuth } from '../context/AuthContext';
+import { motion } from 'framer-motion';
 
 const BillingPage = () => {
   const [plans, setPlans] = useState({});
@@ -98,149 +99,359 @@ const BillingPage = () => {
 
   return (
     <DashboardLayout>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">Subscription Plans</h1>
-        <p className="text-gray-600">Upgrade your plan to get more content generation credits</p>
-      </div>
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        {/* Header with gradient accent */}
+        <div className="position-relative mb-4 pb-2">
+          <div className="position-absolute top-0 start-0 w-100" style={{ height: '3px', background: 'linear-gradient(90deg, #6366f1, #8b5cf6, #d946ef)' }}></div>
+          <div className="d-flex justify-content-between align-items-center pt-3">
+            <div>
+              <h1 className="fs-4 fw-bold mb-1 d-flex align-items-center">
+                <CreditCard size={22} className="me-2 text-primary" />
+                Subscription Plans
+              </h1>
+              <p className="text-muted">Upgrade your plan to get more content generation credits</p>
+            </div>
+          </div>
+        </div>
 
       {/* Current Plan */}
-      <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center">
-            <CreditCard className="w-6 h-6 text-indigo-600" />
-          </div>
-          <div>
-            <h2 className="font-medium text-lg text-gray-800">Current Plan</h2>
-            <p className="text-gray-600 capitalize">{user?.plan || 'Free'} Plan</p>
+      <div className="card border-0 shadow-sm mb-4">
+        <div className="card-body p-4">
+          <div className="d-flex align-items-center">
+            <div className="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
+              <CreditCard size={24} className="text-primary" />
+            </div>
+            <div>
+              <h5 className="card-title mb-1">Current Plan</h5>
+              <div className="d-flex align-items-center">
+                <span className="text-capitalize fw-medium">{user?.plan || 'Free'} Plan</span>
+                {user?.plan && user.plan !== 'free' && (
+                  <span className="badge bg-success bg-opacity-10 text-success ms-2 d-flex align-items-center">
+                    <Check size={12} className="me-1" /> Active
+                  </span>
+                )}
+              </div>
+            </div>
+            {user?.credits && (
+              <div className="ms-auto text-end">
+                <div className="text-muted small">Available Credits</div>
+                <div className="d-flex align-items-center justify-content-end">
+                  <Zap size={16} className="text-warning me-1" />
+                  <span className="fw-semibold">{user.credits.toLocaleString()}</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* Plans Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="row g-4">
           {[...Array(3)].map((_, index) => (
-            <div key={index} className="bg-white rounded-lg shadow-sm border p-6 animate-pulse">
-              <div className="h-8 bg-gray-200 rounded w-1/2 mb-4"></div>
-              <div className="h-10 bg-gray-200 rounded w-1/3 mb-6"></div>
-              <div className="space-y-2 mb-6">
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="h-4 bg-gray-200 rounded w-full"></div>
-                ))}
+            <div key={index} className="col-md-4">
+              <div className="card border-0 shadow-sm h-100">
+                <div className="card-body p-4">
+                  <div className="placeholder-glow">
+                    <div className="placeholder col-6 mb-3" style={{ height: '24px' }}></div>
+                    <div className="placeholder col-4 mb-4" style={{ height: '32px' }}></div>
+                    <div className="d-flex align-items-center mb-3">
+                      <div className="placeholder col-1 me-2 rounded-circle" style={{ height: '20px', width: '20px' }}></div>
+                      <div className="placeholder col-8" style={{ height: '16px' }}></div>
+                    </div>
+                    <div className="d-flex align-items-center mb-3">
+                      <div className="placeholder col-1 me-2 rounded-circle" style={{ height: '20px', width: '20px' }}></div>
+                      <div className="placeholder col-7" style={{ height: '16px' }}></div>
+                    </div>
+                    <div className="d-flex align-items-center mb-3">
+                      <div className="placeholder col-1 me-2 rounded-circle" style={{ height: '20px', width: '20px' }}></div>
+                      <div className="placeholder col-9" style={{ height: '16px' }}></div>
+                    </div>
+                    <div className="placeholder col-12 mt-4" style={{ height: '40px' }}></div>
+                  </div>
+                </div>
               </div>
-              <div className="h-10 bg-gray-200 rounded w-full"></div>
             </div>
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="row g-4">
           {/* Free Plan */}
-          <div className={`bg-white rounded-lg shadow-sm border p-6 ${user?.plan === 'free' ? 'ring-2 ring-indigo-500' : ''}`}>
-            <h3 className="font-semibold text-xl mb-2">Free Plan</h3>
-            <p className="text-2xl font-bold mb-4">₹0 <span className="text-sm font-normal text-gray-500">/month</span></p>
-            <ul className="space-y-3 mb-6">
-              <li className="flex items-start">
-                <Check className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                <span>500,000 characters per month</span>
-              </li>
-              <li className="flex items-start">
-                <Check className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                <span>Access to basic templates</span>
-              </li>
-              <li className="flex items-start">
-                <Check className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                <span>Email support</span>
-              </li>
-            </ul>
-            <button
-              className={`w-full py-2 rounded-md border ${
-                user?.plan === 'free' 
-                  ? 'bg-gray-100 text-gray-500 cursor-not-allowed' 
-                  : 'border-indigo-600 text-indigo-600 hover:bg-indigo-50'
-              }`}
-              disabled={user?.plan === 'free'}
+          <div className="col-md-4">
+            <motion.div 
+              className={`card border-0 shadow-sm h-100 ${user?.plan === 'free' ? 'border border-primary' : ''}`}
+              whileHover={{ y: -5, transition: { duration: 0.2 } }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
             >
-              {user?.plan === 'free' ? 'Current Plan' : 'Downgrade'}
-            </button>
+              {user?.plan === 'free' && (
+                <div className="position-absolute top-0 end-0 mt-3 me-3">
+                  <span className="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">
+                    Current Plan
+                  </span>
+                </div>
+              )}
+              <div className="card-body p-4 d-flex flex-column">
+                <div className="d-flex align-items-center mb-3">
+                  <div className="rounded-circle bg-light p-2 me-2">
+                    <Sparkles size={18} className="text-primary" />
+                  </div>
+                  <h5 className="card-title mb-0">Free Plan</h5>
+                </div>
+                
+                <div className="mb-4">
+                  <span className="display-6 fw-bold">₹0</span>
+                  <span className="text-muted">/month</span>
+                </div>
+                
+                <div className="mb-4 flex-grow-1">
+                  <div className="d-flex align-items-start mb-3">
+                    <div className="rounded-circle bg-success bg-opacity-10 p-1 me-2 mt-1">
+                      <Check size={14} className="text-success" />
+                    </div>
+                    <span>500,000 characters per month</span>
+                  </div>
+                  <div className="d-flex align-items-start mb-3">
+                    <div className="rounded-circle bg-success bg-opacity-10 p-1 me-2 mt-1">
+                      <Check size={14} className="text-success" />
+                    </div>
+                    <span>Access to basic templates</span>
+                  </div>
+                  <div className="d-flex align-items-start">
+                    <div className="rounded-circle bg-success bg-opacity-10 p-1 me-2 mt-1">
+                      <Check size={14} className="text-success" />
+                    </div>
+                    <span>Email support</span>
+                  </div>
+                </div>
+                
+                <button
+                  className={`btn ${user?.plan === 'free' ? 'btn-light disabled' : 'btn-outline-primary'} w-100 py-2`}
+                  disabled={user?.plan === 'free'}
+                >
+                  {user?.plan === 'free' ? (
+                    <span className="d-flex align-items-center justify-content-center">
+                      <Check size={18} className="me-2" />
+                      Active
+                    </span>
+                  ) : 'Downgrade'}
+                </button>
+              </div>
+            </motion.div>
           </div>
 
           {/* Premium Plan */}
-          <div className={`bg-white rounded-lg shadow-sm border p-6 ${user?.plan === 'premium' ? 'ring-2 ring-indigo-500' : ''}`}>
-            <h3 className="font-semibold text-xl mb-2">Premium Plan</h3>
-            <p className="text-2xl font-bold mb-4">{formatPrice(plans.premium?.price || 999)} <span className="text-sm font-normal text-gray-500">/month</span></p>
-            <ul className="space-y-3 mb-6">
-              <li className="flex items-start">
-                <Check className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                <span>2 Million characters per month</span>
-              </li>
-              <li className="flex items-start">
-                <Check className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                <span>Access to all templates</span>
-              </li>
-              <li className="flex items-start">
-                <Check className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                <span>Priority support</span>
-              </li>
-            </ul>
-            <button
-              onClick={() => handleSubscribe('premium')}
-              className={`w-full py-2 rounded-md ${
-                user?.plan === 'premium' 
-                  ? 'bg-gray-100 text-gray-500 cursor-not-allowed' 
-                  : 'bg-indigo-600 text-white hover:bg-indigo-700'
-              }`}
-              disabled={user?.plan === 'premium' || processingPayment}
+          <div className="col-md-4">
+            <motion.div 
+              className={`card border-0 shadow-sm h-100 ${user?.plan === 'premium' ? 'border border-primary' : ''}`}
+              whileHover={{ y: -5, transition: { duration: 0.2 } }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.2 }}
             >
-              {user?.plan === 'premium' 
-                ? 'Current Plan' 
-                : processingPayment ? 'Processing...' : 'Upgrade'}
-            </button>
+              <div className="position-absolute top-0 start-0 w-100" style={{ height: '6px', background: 'linear-gradient(90deg, #6366f1, #8b5cf6)' }}></div>
+              
+              {user?.plan === 'premium' && (
+                <div className="position-absolute top-0 end-0 mt-3 me-3">
+                  <span className="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">
+                    Current Plan
+                  </span>
+                </div>
+              )}
+              
+              <div className="card-body p-4 d-flex flex-column">
+                <div className="d-flex align-items-center mb-3">
+                  <div className="rounded-circle bg-primary bg-opacity-10 p-2 me-2">
+                    <Star size={18} className="text-primary" />
+                  </div>
+                  <h5 className="card-title mb-0">Premium Plan</h5>
+                </div>
+                
+                <div className="mb-4">
+                  <span className="display-6 fw-bold">{formatPrice(plans.premium?.price || 999).replace('₹', '₹')}</span>
+                  <span className="text-muted">/month</span>
+                </div>
+                
+                <div className="mb-4 flex-grow-1">
+                  <div className="d-flex align-items-start mb-3">
+                    <div className="rounded-circle bg-success bg-opacity-10 p-1 me-2 mt-1">
+                      <Check size={14} className="text-success" />
+                    </div>
+                    <span>2 Million characters per month</span>
+                  </div>
+                  <div className="d-flex align-items-start mb-3">
+                    <div className="rounded-circle bg-success bg-opacity-10 p-1 me-2 mt-1">
+                      <Check size={14} className="text-success" />
+                    </div>
+                    <span>Access to all templates</span>
+                  </div>
+                  <div className="d-flex align-items-start mb-3">
+                    <div className="rounded-circle bg-success bg-opacity-10 p-1 me-2 mt-1">
+                      <Check size={14} className="text-success" />
+                    </div>
+                    <span>Priority support</span>
+                  </div>
+                </div>
+                
+                <button
+                  onClick={() => handleSubscribe('premium')}
+                  className={`btn ${user?.plan === 'premium' ? 'btn-light disabled' : 'btn-primary'} w-100 py-2`}
+                  style={user?.plan !== 'premium' ? { background: 'linear-gradient(90deg, #6366f1, #8b5cf6)', border: 'none' } : {}}
+                  disabled={user?.plan === 'premium' || processingPayment}
+                >
+                  {user?.plan === 'premium' ? (
+                    <span className="d-flex align-items-center justify-content-center">
+                      <Check size={18} className="me-2" />
+                      Active
+                    </span>
+                  ) : processingPayment ? (
+                    <span className="d-flex align-items-center justify-content-center">
+                      <RefreshCw size={18} className="me-2 animate-spin" />
+                      Processing...
+                    </span>
+                  ) : (
+                    <span className="d-flex align-items-center justify-content-center">
+                      <Zap size={18} className="me-2" />
+                      Upgrade
+                    </span>
+                  )}
+                </button>
+              </div>
+            </motion.div>
           </div>
 
           {/* Enterprise Plan */}
-          <div className={`bg-white rounded-lg shadow-sm border p-6 ${user?.plan === 'enterprise' ? 'ring-2 ring-indigo-500' : ''}`}>
-            <h3 className="font-semibold text-xl mb-2">Enterprise Plan</h3>
-            <p className="text-2xl font-bold mb-4">{formatPrice(plans.enterprise?.price || 2499)} <span className="text-sm font-normal text-gray-500">/month</span></p>
-            <ul className="space-y-3 mb-6">
-              <li className="flex items-start">
-                <Check className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                <span>5 Million characters per month</span>
-              </li>
-              <li className="flex items-start">
-                <Check className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                <span>Access to all templates</span>
-              </li>
-              <li className="flex items-start">
-                <Check className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                <span>Priority support</span>
-              </li>
-              <li className="flex items-start">
-                <Check className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                <span>Custom templates</span>
-              </li>
-            </ul>
-            <button
-              onClick={() => handleSubscribe('enterprise')}
-              className={`w-full py-2 rounded-md ${
-                user?.plan === 'enterprise' 
-                  ? 'bg-gray-100 text-gray-500 cursor-not-allowed' 
-                  : 'bg-indigo-600 text-white hover:bg-indigo-700'
-              }`}
-              disabled={user?.plan === 'enterprise' || processingPayment}
+          <div className="col-md-4">
+            <motion.div 
+              className={`card border-0 shadow-sm h-100 ${user?.plan === 'enterprise' ? 'border border-primary' : ''}`}
+              whileHover={{ y: -5, transition: { duration: 0.2 } }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.3 }}
             >
-              {user?.plan === 'enterprise' 
-                ? 'Current Plan' 
-                : processingPayment ? 'Processing...' : 'Upgrade'}
-            </button>
+              <div className="position-absolute top-0 start-0 w-100" style={{ height: '6px', background: 'linear-gradient(90deg, #8b5cf6, #d946ef)' }}></div>
+              
+              <div className="position-absolute top-0 end-0 mt-3 me-3">
+                {user?.plan === 'enterprise' ? (
+                  <span className="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">
+                    Current Plan
+                  </span>
+                ) : (
+                  <span className="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill">
+                    <Award size={12} className="me-1" /> Best Value
+                  </span>
+                )}
+              </div>
+              
+              <div className="card-body p-4 d-flex flex-column">
+                <div className="d-flex align-items-center mb-3">
+                  <div className="rounded-circle bg-purple bg-opacity-10 p-2 me-2" style={{ backgroundColor: 'rgba(157, 78, 221, 0.1)' }}>
+                    <Gem size={18} style={{ color: '#9d4edd' }} />
+                  </div>
+                  <h5 className="card-title mb-0">Enterprise Plan</h5>
+                </div>
+                
+                <div className="mb-4">
+                  <span className="display-6 fw-bold">{formatPrice(plans.enterprise?.price || 2499).replace('₹', '₹')}</span>
+                  <span className="text-muted">/month</span>
+                </div>
+                
+                <div className="mb-4 flex-grow-1">
+                  <div className="d-flex align-items-start mb-3">
+                    <div className="rounded-circle bg-success bg-opacity-10 p-1 me-2 mt-1">
+                      <Check size={14} className="text-success" />
+                    </div>
+                    <span>5 Million characters per month</span>
+                  </div>
+                  <div className="d-flex align-items-start mb-3">
+                    <div className="rounded-circle bg-success bg-opacity-10 p-1 me-2 mt-1">
+                      <Check size={14} className="text-success" />
+                    </div>
+                    <span>Access to all templates</span>
+                  </div>
+                  <div className="d-flex align-items-start mb-3">
+                    <div className="rounded-circle bg-success bg-opacity-10 p-1 me-2 mt-1">
+                      <Check size={14} className="text-success" />
+                    </div>
+                    <span>Priority support</span>
+                  </div>
+                  <div className="d-flex align-items-start">
+                    <div className="rounded-circle bg-success bg-opacity-10 p-1 me-2 mt-1">
+                      <Check size={14} className="text-success" />
+                    </div>
+                    <span>Custom templates</span>
+                  </div>
+                </div>
+                
+                <button
+                  onClick={() => handleSubscribe('enterprise')}
+                  className={`btn ${user?.plan === 'enterprise' ? 'btn-light disabled' : 'btn-primary'} w-100 py-2`}
+                  style={user?.plan !== 'enterprise' ? { background: 'linear-gradient(90deg, #8b5cf6, #d946ef)', border: 'none' } : {}}
+                  disabled={user?.plan === 'enterprise' || processingPayment}
+                >
+                  {user?.plan === 'enterprise' ? (
+                    <span className="d-flex align-items-center justify-content-center">
+                      <Check size={18} className="me-2" />
+                      Active
+                    </span>
+                  ) : processingPayment ? (
+                    <span className="d-flex align-items-center justify-content-center">
+                      <RefreshCw size={18} className="me-2 animate-spin" />
+                      Processing...
+                    </span>
+                  ) : (
+                    <span className="d-flex align-items-center justify-content-center">
+                      <Shield size={18} className="me-2" />
+                      Upgrade
+                    </span>
+                  )}
+                </button>
+              </div>
+            </motion.div>
           </div>
         </div>
       )}
 
       {/* Payment Information */}
-      <div className="mt-8 bg-gray-50 rounded-lg p-4 border text-sm text-gray-600">
-        <p>* Payments are processed securely through Razorpay. Your subscription will renew automatically each month.</p>
-        <p>* You can cancel your subscription at any time from your account settings.</p>
+      <div className="card border-0 bg-light mt-4">
+        <div className="card-body p-4">
+          <div className="d-flex mb-3">
+            <div className="rounded-circle bg-info bg-opacity-10 p-2 me-3">
+              <Shield size={20} className="text-info" />
+            </div>
+            <div>
+              <h5 className="mb-1 fw-medium">Secure Payments</h5>
+              <p className="text-muted mb-0">All transactions are secure and encrypted</p>
+            </div>
+          </div>
+          
+          <div className="d-flex mb-3">
+            <div className="rounded-circle bg-warning bg-opacity-10 p-2 me-3">
+              <Clock size={20} className="text-warning" />
+            </div>
+            <div>
+              <h5 className="mb-1 fw-medium">Automatic Renewal</h5>
+              <p className="text-muted mb-0">Your subscription will renew automatically each month</p>
+            </div>
+          </div>
+          
+          <div className="d-flex">
+            <div className="rounded-circle bg-success bg-opacity-10 p-2 me-3">
+              <CreditCard size={20} className="text-success" />
+            </div>
+            <div>
+              <h5 className="mb-1 fw-medium">Flexible Cancellation</h5>
+              <p className="text-muted mb-0">You can cancel your subscription at any time from your account settings</p>
+            </div>
+          </div>
+        </div>
       </div>
+      </motion.div>
     </DashboardLayout>
   );
 };

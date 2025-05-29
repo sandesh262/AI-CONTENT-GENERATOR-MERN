@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 const DashboardLayout = ({ children }) => {
   return (
     <div className="d-flex min-vh-100 dashboard-container">
-      <div className="d-none d-md-block" style={{ width: '280px' }}>
+      <div className="d-none d-md-block sidebar-container">
         <Sidebar />
       </div>
       
@@ -27,10 +27,17 @@ const DashboardLayout = ({ children }) => {
           overflow: hidden;
         }
         
+        .sidebar-container {
+          width: 320px !important;
+          min-width: 320px !important;
+          max-width: 320px !important;
+          flex: 0 0 320px;
+        }
+        
         .main-content {
           background-color: #f8f9fa;
-          position: relative;
-          z-index: 1;
+          min-height: 100vh;
+          overflow-y: auto;
         }
         
         @media (min-width: 768px) {
