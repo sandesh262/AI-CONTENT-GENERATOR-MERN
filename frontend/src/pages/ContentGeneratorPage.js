@@ -3,8 +3,23 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import MDEditor from '@uiw/react-md-editor';
-import { ArrowLeft, Copy, Download } from 'lucide-react';
+import { ArrowLeft, Copy, Download, Loader2, Sparkles, Info, Type, AlignLeft, List, Calendar } from 'lucide-react';
 import DashboardLayout from '../components/DashboardLayout';
+
+const getFieldIcon = (type) => {
+  switch (type) {
+    case 'text':
+      return <Type size={16} className="text-primary me-1" />;
+    case 'textarea':
+      return <AlignLeft size={16} className="text-primary me-1" />;
+    case 'select':
+      return <List size={16} className="text-primary me-1" />;
+    case 'date':
+      return <Calendar size={16} className="text-primary me-1" />;
+    default:
+      return <Type size={16} className="text-primary me-1" />;
+  }
+};
 
 const ContentGeneratorPage = () => {
   const { slug } = useParams();
@@ -122,78 +137,113 @@ const ContentGeneratorPage = () => {
       </div>
 
       <div className="row g-4">
+        
         {/* Left Column - Form Section */}
         <div className="col-lg-5">
           <div className="card shadow-sm border-0 h-100">
-            <div className="card-body p-4">
-              <div className="d-flex align-items-start gap-3 mb-4">
+            <div className="card-header bg-white border-0 p-4">
+              <div className="d-flex align-items-start gap-3">
                 <div className="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center p-2" style={{ width: '60px', height: '60px' }}>
                   <img src={template?.icon} alt={template?.name} style={{ width: '36px', height: '36px' }} />
                 </div>
                 <div>
-                  <h2 className="fs-4 fw-bold">{template?.name}</h2>
+                  <h2 className="fs-4 fw-bold mb-1">{template?.name}</h2>
                   <p className="text-secondary mb-0">{template?.desc}</p>
                 </div>
               </div>
+            </div>
 
-              <div className="bg-light p-3 rounded-3 mb-4">
-                <h6 className="fw-bold mb-2">Instructions</h6>
-                <p className="small mb-0">Fill in the form below with your requirements. The more details you provide, the better the generated content will be. All fields marked with * are required.</p>
+            <div className="card-body p-4">
+              <div className="bg-light p-3 rounded-3 mb-4 border-start border-primary border-4">
+                <div className="d-flex align-items-center mb-2">
+                  <Info size={18} className="text-primary me-2" />
+                  <span className="text-primary fw-semibold">Instructions</span>
+                </div>
+                <p className="small mb-0">
+                  Fill in the form below to generate content. All fields are required for optimal results.
+                </p>
               </div>
-
+              
               <form onSubmit={handleSubmit}>
                 {template?.form?.map((field, index) => (
-                  <div key={index} className="mb-4">
-                    <label className="form-label fw-semibold">
-                      {field.label}
-                      {field.required && <span className="text-danger ms-1">*</span>}
+                  <div className="mb-3" key={index}>
+                    <label htmlFor={field.name} className="form-label fw-medium d-flex align-items-center">
+                      {getFieldIcon(field.type)}
+                      <span className="ms-1">{field.label}</span>
                     </label>
                     
-                    {field.field === 'input' ? (
-                      <input
-                        type={field.type || 'text'}
-                        name={field.name}
-                        value={formData[field.name] || ''}
-                        onChange={handleInputChange}
-                        placeholder={field.placeholder || ''}
-                        required={field.required}
-                        className="form-control form-control-lg shadow-sm border-0"
-                      />
-                    ) : field.field === 'textarea' ? (
+                    {field.type === 'textarea' ? (
                       <textarea
+                        className="form-control"
+                        id={field.name}
+                        name={field.name}
+                        placeholder={field.placeholder}
+                        rows="4"
+                        value={formData[field.name] || ''}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    ) : field.type === 'select' ? (
+                      <select
+                        className="form-select"
+                        id={field.name}
                         name={field.name}
                         value={formData[field.name] || ''}
                         onChange={handleInputChange}
-                        placeholder={field.placeholder || ''}
-                        required={field.required}
-                        className="form-control form-control-lg shadow-sm border-0"
-                        style={{ minHeight: '150px' }}
+                        required
+                      >
+                        <option value="">Select an option</option>
+                        {field.options?.map((option, i) => (
+                          <option key={i} value={option}>{option}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type={field.type}
+                        className="form-control"
+                        id={field.name}
+                        name={field.name}
+                        placeholder={field.placeholder}
+                        value={formData[field.name] || ''}
+                        onChange={handleInputChange}
+                        required
                       />
-                    ) : null}
-                    {field.description && (
-                      <div className="form-text small">{field.description}</div>
+                    )}
+                    
+                    {field.helpText && (
+                      <div className="form-text small">{field.helpText}</div>
                     )}
                   </div>
                 ))}
 
-                <div className="d-grid gap-2">
+                <div className="d-grid mt-4">
                   <button
                     type="submit"
-                    className="btn btn-primary btn-lg py-3 fw-semibold mt-3 d-flex align-items-center justify-content-center"
+                    className="btn btn-primary py-2 rounded-pill d-flex align-items-center justify-content-center"
                     disabled={loading}
                   >
                     {loading ? (
                       <>
-                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                        Generating Content...
+                        <Loader2 size={18} className="animate-spin me-2" />
+                        Generating...
                       </>
                     ) : (
-                      'Generate Content'
+                      <>
+                        <Sparkles size={18} className="me-2" />
+                        Generate Content
+                      </>
                     )}
                   </button>
-                  <p className="text-center small text-secondary mt-2 mb-0">Using 1 credit</p>
                 </div>
               </form>
+            </div>
+            <div className="card-footer bg-white border-0 text-center p-3 d-flex align-items-center justify-content-center">
+              <span className="badge bg-light text-primary rounded-pill px-3 py-2 d-flex align-items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" className="bi bi-lightning-charge-fill me-1" viewBox="0 0 16 16">
+                  <path d="M11.251.068a.5.5 0 0 1 .227.58L9.677 6.5H13a.5.5 0 0 1 .364.843l-8 8.5a.5.5 0 0 1-.842-.49L6.323 9.5H3a.5.5 0 0 1-.364-.843l8-8.5a.5.5 0 0 1 .615-.09z" />
+                </svg>
+                Using 1 credit
+              </span>
             </div>
           </div>
         </div>
@@ -204,49 +254,78 @@ const ContentGeneratorPage = () => {
             <div className="card-header bg-white border-0 d-flex justify-content-between align-items-center p-4">
               <div>
                 <h5 className="fw-bold mb-1">Generated Content</h5>
-                <p className="text-secondary small mb-0">Your content will appear here after generation</p>
+                <p className="text-secondary small mb-0">Your AI-generated content will appear here</p>
               </div>
-              
+
               {generatedContent && (
                 <div className="d-flex gap-2">
                   <button
                     onClick={handleDownload}
-                    className="btn btn-outline-primary"
+                    className="btn btn-outline-primary rounded-pill"
                     title="Download as markdown"
                   >
-                    <Download size={18} className="me-2" />
+                    <Download size={16} className="me-1" />
                     Download
                   </button>
                   <button
                     onClick={handleCopy}
-                    className={`btn ${copied ? 'btn-success' : 'btn-primary'}`}
+                    className={`btn rounded-pill ${copied ? 'btn-success' : 'btn-primary'}`}
                     title="Copy to clipboard"
                   >
-                    <Copy size={18} className="me-2" />
+                    <Copy size={16} className="me-1" />
                     {copied ? 'Copied!' : 'Copy'}
                   </button>
                 </div>
               )}
             </div>
-            
-            <div className="card-body p-4" style={{ minHeight: '500px', backgroundColor: '#f9f9f9' }}>
+
+            <div className="card-body p-0" style={{ minHeight: '600px' }}>
               {generatedContent ? (
-                <div className="bg-white p-4 rounded-3 shadow-sm">
-                  <MDEditor.Markdown 
-                    source={generatedContent} 
-                    style={{ whiteSpace: 'pre-wrap' }}
-                  />
+                <div className="content-display">
+                  <div className="content-toolbar bg-light p-2 border-top border-bottom d-flex justify-content-between align-items-center">
+                    <span className="badge bg-success rounded-pill">AI Generated</span>
+                    <span className="text-muted small">{new Date().toLocaleString()}</span>
+                  </div>
+                  <div className="p-4 bg-white" style={{ overflowY: 'auto', maxHeight: '550px' }}>
+                    <MDEditor.Markdown
+                      source={generatedContent}
+                      style={{
+                        whiteSpace: 'pre-wrap',
+                        fontSize: '16px',
+                        lineHeight: '1.6'
+                      }}
+                      className="content-markdown"
+                    />
+                  </div>
                 </div>
               ) : (
-                <div className="text-center py-5 my-5">
-                  <img 
-                    src="/SpecificTemplete.jpg" 
-                    alt="Content Preview" 
-                    className="img-fluid mb-4" 
-                    style={{ maxHeight: '200px', opacity: 0.4 }} 
-                  />
-                  <h4 className="fw-bold text-secondary">Your content will appear here</h4>
-                  <p className="text-secondary">Fill out the form and click Generate Content</p>
+                <div className="text-center py-5 my-5 d-flex flex-column align-items-center justify-content-center" style={{ height: '500px' }}>
+                  <div className="mb-4 p-4 rounded-circle bg-light">
+                    <img
+                      src="/SpecificTemplete.jpg"
+                      alt="Content Preview"
+                      className="img-fluid"
+                      style={{ maxHeight: '150px', opacity: 0.6 }}
+                    />
+                  </div>
+                  <h4 className="fw-bold text-secondary mb-3">Ready to generate content</h4>
+                  <p className="text-secondary mb-4 w-75">Fill out the form on the left and click the Generate Content button to create AI-powered content for your needs.</p>
+                  <div className="d-flex align-items-center">
+                    <div className="bg-light p-2 rounded-circle me-3">
+                      <span className="text-primary">1</span>
+                    </div>
+                    <span>Fill the form</span>
+                    <div className="mx-3">→</div>
+                    <div className="bg-light p-2 rounded-circle me-3">
+                      <span className="text-primary">2</span>
+                    </div>
+                    <span>Generate content</span>
+                    <div className="mx-3">→</div>
+                    <div className="bg-light p-2 rounded-circle me-3">
+                      <span className="text-primary">3</span>
+                    </div>
+                    <span>Use or download</span>
+                  </div>
                 </div>
               )}
             </div>
