@@ -5,11 +5,26 @@ const crypto = require('crypto');
 const User = require('../models/User');
 const { protect } = require('../middleware/auth');
 
+// Validate Razorpay environment variables
+const validateRazorpayConfig = () => {
+  const keyId = process.env.RAZORPAY_KEY_ID;
+  const keySecret = process.env.RAZORPAY_KEY_SECRET;
+  
+  if (!keyId || !keySecret) {
+    console.error('Razorpay configuration is missing. Please set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in .env file.');
+    return false;
+  }
+  return true;
+};
+
 // Initialize Razorpay
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET
-});
+let razorpay;
+if (validateRazorpayConfig()) {
+  razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET
+  });
+}
 
 // Plan details
 const plans = {
@@ -42,9 +57,27 @@ const plans = {
 // @desc    Get available plans
 // @access  Public
 router.get('/plans', (req, res) => {
+  // Check if Razorpay is configured
+  const isRazorpayConfigured = validateRazorpayConfig();
+  
   res.json({
     success: true,
-    plans
+    plans,
+    razorpayKey: process.env.RAZORPAY_KEY_ID, // Sending the key to frontend
+    paymentEnabled: isRazorpayConfigured // Indicate if payment is enabled
+  });
+});
+
+// @route   GET /api/billing/payment-status
+// @desc    Check if payment gateway is configured
+// @access  Public
+router.get('/payment-status', (req, res) => {
+  const isConfigured = validateRazorpayConfig();
+  
+  res.json({
+    success: true,
+    paymentEnabled: isConfigured,
+    message: isConfigured ? 'Payment gateway is configured' : 'Payment gateway is not configured'
   });
 });
 
@@ -53,6 +86,14 @@ router.get('/plans', (req, res) => {
 // @access  Private
 router.post('/create-order', protect, async (req, res) => {
   try {
+    // Check if Razorpay is configured
+    if (!validateRazorpayConfig()) {
+      return res.status(503).json({ 
+        success: false, 
+        message: 'Payment service is currently unavailable. Please contact support.'
+      });
+    }
+    
     const { planId } = req.body;
     
     if (!planId || !plans[planId]) {
@@ -71,15 +112,28 @@ router.post('/create-order', protect, async (req, res) => {
       }
     };
     
-    const order = await razorpay.orders.create(options);
-    
-    res.json({
-      success: true,
-      order
-    });
+    try {
+      const order = await razorpay.orders.create(options);
+      
+      res.json({
+        success: true,
+        order
+      });
+    } catch (razorpayError) {
+      console.error('Razorpay API Error:', razorpayError);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Failed to create payment order. Please try again later.',
+        error: razorpayError.message
+      });
+    }
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error('Server Error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error', 
+      error: error.message 
+    });
   }
 });
 

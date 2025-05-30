@@ -10,14 +10,32 @@ const BillingPage = () => {
   const [plans, setPlans] = useState({});
   const [loading, setLoading] = useState(true);
   const [processingPayment, setProcessingPayment] = useState(false);
+  const [razorpayKey, setRazorpayKey] = useState('');
+  const [paymentEnabled, setPaymentEnabled] = useState(false);
   const { user, updateUserPlan } = useAuth();
 
   useEffect(() => {
-    const fetchPlans = async () => {
+    const fetchPlansAndKey = async () => {
       try {
         const response = await axios.get('/api/billing/plans');
         if (response.data.success) {
           setPlans(response.data.plans);
+          
+          // Get Razorpay key from response if available
+          if (response.data.razorpayKey) {
+            setRazorpayKey(response.data.razorpayKey);
+          }
+          
+          // Check if payment is enabled
+          setPaymentEnabled(response.data.paymentEnabled || false);
+          
+          // Show warning if payment is not enabled
+          if (response.data.paymentEnabled === false) {
+            toast.warning('Payment gateway is not configured. Upgrade functionality is disabled.', {
+              autoClose: 5000,
+              position: 'top-center'
+            });
+          }
         }
       } catch (error) {
         toast.error('Failed to load subscription plans');
@@ -27,10 +45,18 @@ const BillingPage = () => {
       }
     };
 
-    fetchPlans();
+    fetchPlansAndKey();
   }, []);
 
   const handleSubscribe = async (planId) => {
+    // Check if payment is enabled
+    if (!paymentEnabled) {
+      toast.warning('Payment gateway is not configured. Please contact support.', {
+        position: 'top-center'
+      });
+      return;
+    }
+    
     try {
       setProcessingPayment(true);
       
@@ -38,7 +64,7 @@ const BillingPage = () => {
       const orderResponse = await axios.post('/api/billing/create-order', { planId });
       
       if (!orderResponse.data.success) {
-        toast.error('Failed to create order');
+        toast.error(orderResponse.data.message || 'Failed to create order');
         return;
       }
       
@@ -46,7 +72,7 @@ const BillingPage = () => {
       
       // Initialize Razorpay
       const options = {
-        key: 'rzp_test_placeholder', // Replace with actual key from backend in production
+        key: razorpayKey, // Using key from backend
         amount: order.amount,
         currency: order.currency,
         name: 'AI Content Generator',
@@ -80,12 +106,39 @@ const BillingPage = () => {
         }
       };
       
-      const razorpay = new window.Razorpay(options);
-      razorpay.open();
+      if (!window.Razorpay) {
+        toast.error('Razorpay SDK failed to load. Please refresh the page and try again.');
+        console.error('Razorpay SDK not found');
+        setProcessingPayment(false);
+        return;
+      }
+
+      if (!razorpayKey) {
+        toast.error('Payment gateway configuration is missing. Please contact support.');
+        console.error('Razorpay Key is missing');
+        setProcessingPayment(false);
+        return;
+      }
+
+      try {
+        const razorpay = new window.Razorpay(options);
+        
+        // Add event handlers for better error tracking
+        razorpay.on('payment.failed', function(response) {
+          console.error('Payment failed:', response.error);
+          toast.error(`Payment failed: ${response.error.description}`);
+        });
+        
+        razorpay.open();
+      } catch (error) {
+        toast.error(`Failed to process payment: ${error.message || 'Unknown error'}`);
+        console.error('Razorpay error:', error);
+      } finally {
+        setProcessingPayment(false);
+      }
     } catch (error) {
-      toast.error('Failed to process payment');
-      console.error(error);
-    } finally {
+      toast.error(`Payment initialization failed: ${error.message || 'Unknown error'}`);
+      console.error('Payment initialization error:', error);
       setProcessingPayment(false);
     }
   };
@@ -302,7 +355,8 @@ const BillingPage = () => {
                   onClick={() => handleSubscribe('premium')}
                   className={`btn ${user?.plan === 'premium' ? 'btn-light disabled' : 'btn-primary'} w-100 py-2`}
                   style={user?.plan !== 'premium' ? { background: 'linear-gradient(90deg, #6366f1, #8b5cf6)', border: 'none' } : {}}
-                  disabled={user?.plan === 'premium' || processingPayment}
+                  disabled={user?.plan === 'premium' || processingPayment || !paymentEnabled}
+                  title={!paymentEnabled ? 'Payment gateway not configured' : ''}
                 >
                   {user?.plan === 'premium' ? (
                     <span className="d-flex align-items-center justify-content-center">
@@ -392,7 +446,8 @@ const BillingPage = () => {
                   onClick={() => handleSubscribe('enterprise')}
                   className={`btn ${user?.plan === 'enterprise' ? 'btn-light disabled' : 'btn-primary'} w-100 py-2`}
                   style={user?.plan !== 'enterprise' ? { background: 'linear-gradient(90deg, #8b5cf6, #d946ef)', border: 'none' } : {}}
-                  disabled={user?.plan === 'enterprise' || processingPayment}
+                  disabled={user?.plan === 'enterprise' || processingPayment || !paymentEnabled}
+                  title={!paymentEnabled ? 'Payment gateway not configured' : ''}
                 >
                   {user?.plan === 'enterprise' ? (
                     <span className="d-flex align-items-center justify-content-center">
