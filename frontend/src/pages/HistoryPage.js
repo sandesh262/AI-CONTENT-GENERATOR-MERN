@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import { toast } from 'react-toastify';
 import { Clock, Eye, Search, Calendar, FileText, Download, Copy, X, Filter, Sparkles, ChevronRight } from 'lucide-react';
 import moment from 'moment';
@@ -19,7 +19,7 @@ const HistoryPage = () => {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const response = await axios.get('/api/content/history');
+        const response = await api.get('/api/content/history');
         if (response.data.success) {
           setHistory(response.data.contents);
           setFilteredHistory(response.data.contents);

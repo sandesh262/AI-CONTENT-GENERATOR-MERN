@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 import { toast } from 'react-toastify';
 import MDEditor from '@uiw/react-md-editor';
 import { ArrowLeft, Copy, Download, Loader2, Sparkles, Info, Type, AlignLeft, List, Calendar } from 'lucide-react';
@@ -35,7 +35,7 @@ const ContentGeneratorPage = () => {
   useEffect(() => {
     const fetchTemplate = async () => {
       try {
-        const response = await axios.get(`/api/templates/${slug}`);
+        const response = await api.get(`/api/templates/${slug}`);
         if (response.data.success) {
           setTemplate(response.data.template);
         } else {
@@ -63,7 +63,7 @@ const ContentGeneratorPage = () => {
     setLoading(true);
     
     try {
-      const response = await axios.post('/api/content/generate', {
+      const response = await api.post('/api/content/generate', {
         templateSlug: template.slug,
         templateName: template.name,
         formData,
